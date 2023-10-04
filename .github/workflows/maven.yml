@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: setup ubuntu
-      - run: |
+        run: |
           sudo apt update
           sudo apt upgrade -y
 
