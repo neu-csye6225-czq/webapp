@@ -1,18 +1,24 @@
-name: Build and Test with Maven
+name: Build with Maven
 
 on:
   pull_request:
     branches: [ "main" ]
 
 jobs:
-  test:
+  build:
 
     runs-on: ubuntu-latest
+
+    env:
+      DB_DATABASE: webappdb
+      DB_USER: root
+      DB_PASSWORD: 'root'
+      DB_HOST: localhost
 
     steps:
       - run: sudo /etc/init.d/mysql start
 
-      - name: setup mysql
+      - name: Connect to MySQL server
         run: |
           mysql -h localhost -u root -proot -e "CREATE DATABASE webappdb;"
           mysql -h localhost -u root -proot -e "CREATE USER 'csye6225'@'%' IDENTIFIED BY 'PASSword123!';"
@@ -27,7 +33,7 @@ jobs:
           cache: maven
 
       - name: Clean with Maven
-        run: mvn clean install
+        run: mvn clean
 
-      - name: Run test
-        run: mvn test
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
