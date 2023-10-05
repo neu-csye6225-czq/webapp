@@ -9,12 +9,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      DB_DATABASE: webappdb
-      DB_USER: root
-      DB_PASSWORD: 'root'
-      DB_HOST: localhost
-
     steps:
       - run: sudo /etc/init.d/mysql start
 
@@ -37,4 +31,3 @@ jobs:
 
       - name: Run test
         run: mvn test
-
