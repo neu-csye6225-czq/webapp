@@ -49,4 +49,4 @@ For this assignment, we are going to implement an endpoint `/healthz` that will 
 ### Implement Integration Tests
 Implement integration (and not unit) tests for the /healtz endpoint. You only need to test for success criteria and not for the failure. This will require your GitHub action to install and setup an actual MySQL and PostgreSQL instance and provide configuration to the application to connect to it.
 
-SOME TEXTs
+SOME TEXT
