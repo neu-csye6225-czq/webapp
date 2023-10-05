@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - run: sudo /etc/init.d/mysql start
+      - name: Start mysql
+        run: sudo /etc/init.d/mysql start
 
       - name: Connect to MySQL server
         run: |
