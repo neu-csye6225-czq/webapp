@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Date;
@@ -23,6 +24,8 @@ public class AccountService {
     @PostConstruct
     public void loadAccountCsv() throws IOException {
         System.out.println("[INFO] Start loading csv");
+        File file = new File("/opt/users.csv");
+        if (!file.exists()) return;
         try (FileReader fileReader = new FileReader("/opt/users.csv");
              CSVParser csvParser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(fileReader)) {
             for (CSVRecord csvRecord : csvParser) {
