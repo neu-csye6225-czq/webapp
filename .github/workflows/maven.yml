@@ -16,7 +16,7 @@ jobs:
       - name: Connect to MySQL server
         run: |
           mysql -h localhost -u root -proot -e "CREATE DATABASE webappdb;"
-          mysql -h localhost -u root -proot -e "CREATE USER 'csye6225'@'%' IDENTIFIED BY 'PASSword123!';"
+          mysql -h localhost -u root -proot -e "CREATE USER 'csye6225'@'%' IDENTIFIED BY 'PASSword1234!';"
           mysql -h localhost -u root -proot -e "GRANT ALL PRIVILEGES ON webappdb.* TO 'csye6225'@'%';"
 
       - uses: actions/checkout@v3
