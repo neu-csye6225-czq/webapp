@@ -2,7 +2,7 @@
 
 ## Assignment 02
 
-### Health Check RESTful API
+### Health Check RESTful AP
 
 For this assignment, we are going to implement an endpoint `/healthz` that will do the following when called:
 
