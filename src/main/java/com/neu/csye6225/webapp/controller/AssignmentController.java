@@ -86,9 +86,11 @@ public class AssignmentController {
 
     @RequestMapping(value = "/v1/assignments/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<Assignment> deleteAssignment(@RequestHeader String Authorization,
-                                                       @PathVariable("id") String id) {
+                                                       @PathVariable("id") String id,
+                                                       @RequestBody(required = false) String body) {
         Account account = accountDao.getAccountByToken(Authorization);
         if (account == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        if (body != null) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         if (!Utils.isValidUUID(id))  return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         Assignment assignment = assignmentDao.getAssignmentById(id);
         if (assignment == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);

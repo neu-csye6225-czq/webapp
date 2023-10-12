@@ -3,8 +3,6 @@ package com.neu.csye6225.webapp.dao;
 
 import com.neu.csye6225.webapp.entity.db.Account;
 import com.neu.csye6225.webapp.util.Utils;
-import jdk.jshell.execution.Util;
-import org.apache.catalina.User;
 import org.hibernate.PersistentObjectException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -43,7 +41,7 @@ public class AccountDao {
         query.setParameter("email", email);
         Account account = (Account) query.uniqueResult();
         transaction.commit();
-        System.out.println(account);
+//        System.out.println(account);
         if (session != null) session.close();
         return account;
     }
