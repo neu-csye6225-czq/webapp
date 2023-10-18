@@ -68,12 +68,12 @@ build {
 
   provisioner "file" {
     source      = "target/classes/application.properties"
-    destination = "/tmp/application.properties"
+    destination = "~/application.properties"
   }
 
   provisioner "file" {
     source      = "target/webapp-0.0.1-SNAPSHOT.jar"
-    destination = "/tmp/webapp-0.0.1-SNAPSHOT.jar"
+    destination = "~/webapp-0.0.1-SNAPSHOT.jar"
   }
 
 }
