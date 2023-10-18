@@ -1,18 +1,17 @@
-name: Build with Maven
+name: Packer Build AMI
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
+    types: [ closed ]
 
 jobs:
-  build:
+  test:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
-      - name: Start mysql
-        run: sudo /etc/init.d/mysql start
-
+      - run: sudo /etc/init.d/mysql start
       - name: Connect to MySQL server
         run: |
           mysql -h localhost -u root -proot -e "CREATE DATABASE webappdb;"
@@ -33,13 +32,21 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
       - name: Install Packer
         run: |
-            sudo apt-get update
-            sudo apt-get install -y packer
+          sudo apt-get update
+          sudo apt-get install -y packer
 
-      - name: packer format && validation
+      - name: Build AMI
         run: |
-          packer init ./packer/ami.pkr.hcl
-          packer fmt ./packer/ami.pkr.hcl
-          packer validate ./packer/ami.pkr.hcl
+          packer init ./ami.pkr.hcl
+          packer fmt ./ami.pkr.hcl
+          packer validate ./ami.pkr.hcl
+          packer build ./ami.pkr.hcl
