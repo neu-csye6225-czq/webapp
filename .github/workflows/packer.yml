@@ -10,8 +10,8 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
-      contents: read
+      id-token: read
+      contents: write
 
     steps:
       - run: sudo /etc/init.d/mysql start
@@ -49,7 +49,7 @@ jobs:
 
       - name: Build AMI
         run: |
-          packer init ./ami.pkr.hcl
-          packer fmt ./ami.pkr.hcl
-          packer validate ./ami.pkr.hcl
-          packer build ./ami.pkr.hcl
+          packer init ./packer/ami.pkr.hcl
+          packer fmt ./packer/ami.pkr.hcl
+          packer validate ./packer/ami.pkr.hcl
+          packer build ./packer/ami.pkr.hcl
