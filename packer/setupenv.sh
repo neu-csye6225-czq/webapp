@@ -36,5 +36,8 @@ sudo mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" -e "exit"
 
 echo "Create database '$NEW_DB_NAME' and user '$NEW_USER'，and grant privileges。"
 
+sudo cp ~/users.csv /opt/users.csv
+echo "Copy file users.csv"
+
 # run
 # java -jar /root/webapp-0.0.1-SNAPSHOT.jar --spring.config.location=/root/application.properties

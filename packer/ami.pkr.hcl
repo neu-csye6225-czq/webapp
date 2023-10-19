@@ -62,6 +62,11 @@ source "amazon-ebs" "my-ami" {
 build {
   sources = ["source.amazon-ebs.my-ami"]
 
+  provisioner "file" {
+    source      = "packer/users.csv"
+    destination = "~/users.csv"
+  }
+
   provisioner "shell" {
     script = "packer/setupenv.sh"
   }
