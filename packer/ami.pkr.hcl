@@ -54,7 +54,7 @@ source "amazon-ebs" "my-ami" {
     device_name           = "/dev/xvda"
     volume_size           = 8
     volume_type           = "gp2"
-  }
+  
 
   ami_users = ["${var.shared_account_id}"]
 }
