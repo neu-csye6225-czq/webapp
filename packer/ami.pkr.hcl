@@ -59,7 +59,7 @@ source "amazon-ebs" "my-ami" {
   ami_users = ["${var.shared_account_id}"]
 }
 
-build {
+            build {
   sources = ["source.amazon-ebs.my-ami"]
 
   provisioner "file" {
