@@ -1,0 +1,13 @@
+[Unit]
+Description=webapp
+After=network.target
+
+[Service]
+User=csye6225
+WorkingDirectory=/opt
+ExecStart=/usr/bin/java -jar /opt/csye6225/webapp-0.0.1-SNAPSHOT.jar --spring.config.location=/opt/csye6225/application.properties
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=cloud-init.target

@@ -40,9 +40,9 @@ variable "ssh_username" {
 source "amazon-ebs" "my-ami" {
   profile         = "${var.profile}"
   region          = "${var.aws_region}"
-  ami_regions     = ["us-east-1"]
+  ami_regions     = ["${var.aws_region}"]
   ami_name        = "csye6225_${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
-  ami_description = "ami for csye6225 as05"
+  ami_description = "ami for csye6225 as06"
   instance_type   = "t2.micro"
   source_ami      = "${var.source_ami}"
   ssh_username    = "${var.ssh_username}"
@@ -67,10 +67,6 @@ build {
     destination = "~/users.csv"
   }
 
-  provisioner "shell" {
-    script = "packer/setupenv.sh"
-  }
-
   provisioner "file" {
     source      = "target/classes/application.properties"
     destination = "~/application.properties"
@@ -81,4 +77,12 @@ build {
     destination = "~/webapp-0.0.1-SNAPSHOT.jar"
   }
 
+  provisioner "file" {
+    source      = "packer/webapp.service"
+    destination = "~/webapp.service"
+  }
+
+  provisioner "shell" {
+    script = "packer/setupenv.sh"
+  }
 }
