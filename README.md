@@ -1,4 +1,4 @@
-# CSYE6225-webapp
+# CSYE6225-webapp demo6
 
 ## Assignment 02
 
