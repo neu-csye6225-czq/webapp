@@ -1,5 +1,7 @@
 package com.neu.csye6225.webapp;
 
+import com.timgroup.statsd.NonBlockingStatsDClient;
+import com.timgroup.statsd.StatsDClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -36,5 +38,4 @@ public class WebappApplication {
         hibernateProperties.setProperty("hibernate.show_sql", "false");
         return hibernateProperties;
     }
-
 }

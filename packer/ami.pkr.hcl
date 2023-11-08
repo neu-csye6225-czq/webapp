@@ -82,6 +82,11 @@ build {
     destination = "~/webapp.service"
   }
 
+  provisioner "file" {
+    source      = "packer/cloudwatch-config.json"
+    destination = "~/cloudwatch-config.json"
+  }
+
   provisioner "shell" {
     script = "packer/setupenv.sh"
   }
