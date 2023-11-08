@@ -6,18 +6,25 @@ import com.neu.csye6225.webapp.entity.db.Account;
 import com.neu.csye6225.webapp.entity.db.Assignment;
 import com.neu.csye6225.webapp.entity.request.AssignmentRequestBody;
 import com.neu.csye6225.webapp.util.Utils;
+import com.timgroup.statsd.NonBlockingStatsDClient;
+import com.timgroup.statsd.StatsDClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 @Controller
 public class AssignmentController {
+    private final Logger logger = LoggerFactory.getLogger(AssignmentController.class);
+
+    private StatsDClient statsD = new NonBlockingStatsDClient("webapp.assignment", "localhost", 8125);
+
     @Autowired
     AssignmentDao assignmentDao;
 
@@ -40,15 +47,20 @@ public class AssignmentController {
     public ResponseEntity<Set<Assignment>> getAssignmentList(
             @RequestHeader String Authorization,
             @RequestBody(required = false) String body) {
+        logger.info("Get list of assignments is called.");
+        statsD.incrementCounter("getAssigmentList.total");
         Account account = accountDao.getAccountByToken(Authorization);
         if (body != null) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         if (account == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        logger.info(String.format("Account %s getting assignments' info.", account.getEmail()));
         return new ResponseEntity<>(account.getAssignments(), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/v1/assignments", method = RequestMethod.POST)
     public ResponseEntity<Assignment> createAssignment(@RequestHeader String Authorization,
                                                         @RequestBody AssignmentRequestBody requestBody) {
+        logger.info("Create assignment is called.");
+        statsD.incrementCounter("createAssigment.total");
         Account account = accountDao.getAccountByToken(Authorization);
         if (account == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         if (!checkRequestBody(requestBody)) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -65,6 +77,8 @@ public class AssignmentController {
         assignment.setAccount(account);
         assignmentDao.save(assignment);
 
+        logger.info(String.format("Account %s create a new assignment %s", account.getEmail(), assignment.getName()));
+
         return new ResponseEntity<>(assignment, HttpStatus.CREATED);
     }
 
@@ -72,6 +86,8 @@ public class AssignmentController {
     public ResponseEntity<Assignment> findAssignment(@RequestHeader String Authorization,
                                                      @PathVariable("id") String id,
                                                      @RequestBody(required = false) String body) {
+        logger.info("Get assignment info is called.");
+        statsD.incrementCounter("getAssigmentInfo.total");
         Account account = accountDao.getAccountByToken(Authorization);
         if (account == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         if (!Utils.isValidUUID(id))  return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -81,6 +97,7 @@ public class AssignmentController {
         System.out.println(account.getId());
         System.out.println(assignment.getAccount().getId());
         if (!assignment.getAccount().getId().equals(account.getId())) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        logger.info(String.format("Account %s get assignment %s info", account.getEmail(), assignment.getName()));
         return new ResponseEntity<>(assignment, HttpStatus.OK);
     }
 
@@ -88,6 +105,8 @@ public class AssignmentController {
     public ResponseEntity<Assignment> deleteAssignment(@RequestHeader String Authorization,
                                                        @PathVariable("id") String id,
                                                        @RequestBody(required = false) String body) {
+        logger.info("Delete assignment is called.");
+        statsD.incrementCounter("deleteAssigment.total");
         Account account = accountDao.getAccountByToken(Authorization);
         if (account == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         if (body != null) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -96,6 +115,7 @@ public class AssignmentController {
         if (assignment == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         if (!assignment.getAccount().getId().equals(account.getId())) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         assignmentDao.delete(assignment);
+        logger.info(String.format("Account %s delete assignment %s", account.getEmail(), assignment.getName()));
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -103,6 +123,8 @@ public class AssignmentController {
     public ResponseEntity<Assignment> updateAssignment(@RequestHeader String Authorization,
                                                        @PathVariable("id") String id,
                                                        @RequestBody AssignmentRequestBody requestBody) {
+        logger.info("Update assignment is called.");
+        statsD.incrementCounter("updateAssigment.total");
         Account account = accountDao.getAccountByToken(Authorization);
         if (account == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         if (!Utils.isValidUUID(id))  return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -120,6 +142,7 @@ public class AssignmentController {
         Date date = new Date();
         assignment.setAssignmentUpdated(date);
         assignmentDao.update(assignment);
+        logger.info(String.format("Account %s update assignment %s", account.getEmail(), assignment.getName()));
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

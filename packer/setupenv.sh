@@ -47,6 +47,9 @@ sudo useradd -s /bin/false -g csye6225 -d /opt/csye6225 -m csye6225
 echo "Create user group and user done"
 
 echo "Copy files and grant privileges"
+sudo touch /opt/csye6225/spring.log
+sudo chown csye6225:csye6225 /opt/csye6225/spring.log
+sudo chmod +w /opt/csye6225/spring.log
 sudo cp ~/users.csv /opt/users.csv
 sudo chown csye6225:csye6225 /opt/users.csv
 sudo chmod +r /opt/users.csv
@@ -55,8 +58,10 @@ sudo cp ~/webapp-0.0.1-SNAPSHOT.jar /opt/csye6225/webapp-0.0.1-SNAPSHOT.jar
 sudo chown csye6225:csye6225 /opt/csye6225/application.properties
 sudo chown csye6225:csye6225 /opt/csye6225/webapp-0.0.1-SNAPSHOT.jar
 sudo chmod +x /opt/csye6225/webapp-0.0.1-SNAPSHOT.jar
+sudo chmod +w /opt/csye6225/webapp-0.0.1-SNAPSHOT.jar
 sudo chmod +r /opt/csye6225/application.properties
 sudo cp ~/webapp.service /etc/systemd/system/webapp.service
+sudo cp ~/cloudwatch-config.json /opt/cloudwatch-config.json
 sudo ls /opt
 sudo ls /etc/systemd/system
 echo "Copy files and grant privileges done"
@@ -66,3 +71,9 @@ sudo systemctl daemon-reload
 sudo systemctl enable webapp.service
 sudo systemctl start webapp.service
 echo "Systemd setup done"
+
+echo "Install and setup cloudwatch"
+wget https://s3.amazonaws.com/amazoncloudwatch-agent/debian/amd64/latest/amazon-cloudwatch-agent.deb
+sudo dpkg -i amazon-cloudwatch-agent.deb
+sudo systemctl enable amazon-cloudwatch-agent.service
+echo "Cloudwatch setup done"
