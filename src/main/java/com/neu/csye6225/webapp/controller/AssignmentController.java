@@ -2,13 +2,18 @@ package com.neu.csye6225.webapp.controller;
 
 import com.neu.csye6225.webapp.dao.AccountDao;
 import com.neu.csye6225.webapp.dao.AssignmentDao;
+import com.neu.csye6225.webapp.dao.SubmissionDao;
 import com.neu.csye6225.webapp.entity.db.Account;
 import com.neu.csye6225.webapp.entity.db.Assignment;
+import com.neu.csye6225.webapp.entity.db.Submission;
 import com.neu.csye6225.webapp.entity.request.AssignmentRequestBody;
+import com.neu.csye6225.webapp.entity.request.SubmitRequest;
+import com.neu.csye6225.webapp.service.SNSService;
 import com.neu.csye6225.webapp.util.Utils;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -30,6 +35,12 @@ public class AssignmentController {
 
     @Autowired
     AccountDao accountDao;
+
+    @Autowired
+    SubmissionDao submissionDao;
+
+    @Autowired
+    SNSService service;
 
     private boolean checkRequestBody(AssignmentRequestBody requestBody) {
 //        System.out.println(11111);
@@ -147,4 +158,48 @@ public class AssignmentController {
     }
 
 
+    @RequestMapping(value = "/v1/assignments/{id}/submission", method = RequestMethod.POST)
+    public ResponseEntity<Submission> submit(@RequestHeader String Authorization,
+                                             @PathVariable("id") String id,
+                                             @RequestBody SubmitRequest requestBody,
+                                             @Value("${aws.topic.arn}") String arn) {
+        logger.info("Submit assignment is called.");
+        statsD.incrementCounter("submitAssigment.total");
+
+        Account account = accountDao.getAccountByToken(Authorization);
+        if (account == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        if (!Utils.isValidUUID(id))  return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        Assignment assignment = assignmentDao.getAssignmentById(id);
+        if (assignment == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (!assignment.getAccount().getId().equals(account.getId())) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+
+        if (requestBody == null || requestBody.getSubmission_url() == null) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+
+        Date curDate = new Date();
+        if (curDate.after(assignment.getDeadline())) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        if (assignment.getNumOfAttempts() <= 0) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+        assignment.setNumOfAttempts(assignment.getNumOfAttempts() - 1);
+        assignmentDao.update(assignment);
+
+        Submission submission = submissionDao.getByAssigmentId(assignment.getId());
+
+        if (submission == null) {
+            submission = new Submission();
+            submission.setAssignment(assignment);
+            submission.setSubmissionDate(curDate);
+            submission.setSubmissionUpdated(curDate);
+            submission.setSubmissionUrl(requestBody.getSubmission_url());
+            submissionDao.save(submission);
+        }
+
+        submission.setSubmissionUpdated(curDate);
+        submissionDao.update(submission);
+
+        service.sendMessageToSnsTopic(arn, submission.getSubmissionUrl(), account.getEmail());
+
+        return new ResponseEntity<>(submission, HttpStatus.CREATED);
+
+    }
 }
