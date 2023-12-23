@@ -8,10 +8,10 @@ import com.neu.csye6225.webapp.entity.db.Assignment;
 import com.neu.csye6225.webapp.entity.db.Submission;
 import com.neu.csye6225.webapp.entity.request.AssignmentRequestBody;
 import com.neu.csye6225.webapp.entity.request.SubmitRequest;
-import com.neu.csye6225.webapp.service.SNSService;
 import com.neu.csye6225.webapp.util.Utils;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -20,6 +20,10 @@ import org.springframework.stereotype.Controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
 
 import java.util.Date;
 import java.util.Set;
@@ -38,9 +42,6 @@ public class AssignmentController {
 
     @Autowired
     SubmissionDao submissionDao;
-
-    @Autowired
-    SNSService service;
 
     private boolean checkRequestBody(AssignmentRequestBody requestBody) {
 //        System.out.println(11111);
@@ -168,38 +169,63 @@ public class AssignmentController {
 
         Account account = accountDao.getAccountByToken(Authorization);
         if (account == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+//        System.out.println("111111111");
+
         if (!Utils.isValidUUID(id))  return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         Assignment assignment = assignmentDao.getAssignmentById(id);
         if (assignment == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         if (!assignment.getAccount().getId().equals(account.getId())) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-
+//        System.out.println("222222222");
         if (requestBody == null || requestBody.getSubmission_url() == null) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 
         Date curDate = new Date();
         if (curDate.after(assignment.getDeadline())) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//        System.out.println("33333333");
+
         if (assignment.getNumOfAttempts() <= 0) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         assignment.setNumOfAttempts(assignment.getNumOfAttempts() - 1);
         assignmentDao.update(assignment);
 
-        Submission submission = submissionDao.getByAssigmentId(assignment.getId());
+//        Submission submission = submissionDao.getByAssigmentId(assignment.getId());
 
-        if (submission == null) {
-            submission = new Submission();
+//        if (submission == null) {
+            Submission submission = new Submission();
             submission.setAssignment(assignment);
             submission.setSubmissionDate(curDate);
             submission.setSubmissionUpdated(curDate);
             submission.setSubmissionUrl(requestBody.getSubmission_url());
             submissionDao.save(submission);
-        }
+//        }
 
-        submission.setSubmissionUpdated(curDate);
-        submissionDao.update(submission);
+//        submission.setSubmissionUpdated(curDate);
+//        submissionDao.update(submission);
 
-        service.sendMessageToSnsTopic(arn, submission.getSubmissionUrl(), account.getEmail());
+        logger.info("Submission created Success!!!");
+        publishtoSNS(submission.getSubmissionUrl(), account.getEmail(), arn);
 
         return new ResponseEntity<>(submission, HttpStatus.CREATED);
+    }
 
+    private void publishtoSNS(String submission_url, String extractEmail, String snsTopicArn) {
+//        String snsMessage = "New submission from: " + extractEmail + "& Submission URL: " + submission_url;
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("email", extractEmail);
+        jsonObject.put("submission_url", submission_url);
+
+        SnsClient snsClient = SnsClient.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(DefaultCredentialsProvider.create())
+                .build();
+
+        PublishRequest request = PublishRequest.builder()
+                .topicArn(snsTopicArn)
+                .message(jsonObject.toString())
+                .build();
+        snsClient.publish(request);
+
+        snsClient.close();
     }
 }
