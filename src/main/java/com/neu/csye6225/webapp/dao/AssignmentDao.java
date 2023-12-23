@@ -18,7 +18,9 @@ public class AssignmentDao {
 
     public Assignment getAssignmentById(String id) {
         Session session = sessionFactory.openSession();
-        return session.get(Assignment.class, id);
+        Assignment assignment = session.get(Assignment.class, id);
+        session.close();
+        return assignment;
     }
 
     public Assignment getAssignmentByName(String name) {

@@ -18,17 +18,17 @@ public class SubmissionDao {
     @Autowired
     SessionFactory sessionFactory;
 
-    public Submission getByAssigmentId(String id) {
-        Session session = sessionFactory.openSession();
-        session = sessionFactory.openSession();
-        Transaction transaction = session.beginTransaction();
-        Query query = session.createQuery("from Submission where assignment = :assigment");
-        query.setParameter("assigment", id);
-        Submission submission = (Submission) query.uniqueResult();
-        transaction.commit();
-        session.close();
-        return submission;
-    }
+//    public Submission getByAssigmentId(String id) {
+//        Session session = sessionFactory.openSession();
+//        session = sessionFactory.openSession();
+//        Transaction transaction = session.beginTransaction();
+//        Query query = session.createQuery("from Submission where assignment = :assigment");
+//        query.setParameter("assigment", id);
+//        Submission submission = (Submission) query.uniqueResult();
+//        transaction.commit();
+//        session.close();
+//        return submission;
+//    }
 
     public boolean save(Submission submission) {
         Session session = null;
